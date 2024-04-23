@@ -24,6 +24,7 @@ export interface HourlyWeatherCardConfig extends LovelaceCardConfig {
   hide_bar?: boolean;
   icon_fill?: boolean;
   official_icons?: boolean;
+  segment_spacing?: string; // number
   hide_hours?: boolean;
   hide_temperatures?: boolean;
   round_temperatures?: boolean;

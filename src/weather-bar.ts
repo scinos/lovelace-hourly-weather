@@ -46,6 +46,9 @@ export class WeatherBar extends LitElement {
   @property({ type: Boolean })
   official_icons = false;
 
+  @property({ type: Number })
+  segment_spacing = 1;
+
   @property({ type: String })
   show_wind: WindType = 'false';
 
@@ -98,8 +101,8 @@ export class WeatherBar extends LitElement {
         const icon = this.getIcon(cond[0]);
 
         if (this.icon_fill) {
-          for (let i = 0; i < cond[1]; i++) {
-            const gridEnd = gridStart + 2;
+          for (let i = 0; i < cond[1]; i += this.segment_spacing) {
+            const gridEnd = gridStart + (2 * this.segment_spacing);
             conditionBars.push(
               this.getConditionBar(cond[0], gridStart, gridEnd, label, icon)
             )
@@ -277,6 +280,11 @@ export class WeatherBar extends LitElement {
       display: inline-block;
       max-width: max(0px, calc((100% - 20px) * 999));
       overflow: hidden;
+
+      width: var(--mdc-icon-size,48px);
+      height: var(--mdc-icon-size,48px);
+      justify-self: center;
+      align-self: center;
     }
     .condition-icon > ha-icon {
       filter: drop-shadow(1px 1px 3px var(--primary-background-color));
