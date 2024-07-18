@@ -141,7 +141,7 @@ export class HourlyWeatherCard extends LitElement {
 
   private async subscribeToForecastEvents() {
     this.unsubscribeForecastEvents();
-    if (!this.isConnected || !this.hass || !this.config || !this.config.entity || !this.hassSupportsForecastEvents()) {
+    if (!this.isConnected || !this.hass || !this.config || !this.config.entity || !this.hassSupportsForecastEvents() || !this.config.entity.startsWith('weather.')) {
       return;
     }
 
@@ -295,7 +295,7 @@ export class HourlyWeatherCard extends LitElement {
   }
 
   private hassSupportsForecastEvents(): boolean {
-    return !!(this.hass?.services?.weather?.get_forecast);
+    return !!(this.hass?.services?.weather?.get_forecasts) || !!(this.hass?.services?.weather?.get_forecast);
   }
 
   // https://lit.dev/docs/components/rendering/
