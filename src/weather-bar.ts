@@ -1,10 +1,11 @@
-import { LitElement, html, css, nothing, TemplateResult, unsafeCSS, PropertyValueMap } from "lit";
+import { LitElement, html, css, TemplateResult, unsafeCSS, PropertyValueMap } from "lit";
 import { property } from "lit/decorators.js";
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
+import { classMap } from 'lit-html/directives/class-map.js';
 import tippy, { Instance } from 'tippy.js';
 import { LABELS, ICONS } from "./conditions";
 import { getWindBarbSVG } from "./lib/svg-wind-barbs";
-import type { ColorMap, ConditionSpan, SegmentTemperature, SegmentWind, SegmentPrecipitation, WindType, ShowDateType } from "./types";
+import type { ColorMap, ConditionSpan, DayTime, SegmentTemperature, SegmentWind, SegmentPrecipitation, WindType, ShowDateType } from "./types";
 import { getWeatherStateSVG, weatherSVGStyles } from './lib/homeassistant-weather-icons';
 
 const tippyStyles: string = process.env.TIPPY_CSS || '';
@@ -12,6 +13,9 @@ const tippyStyles: string = process.env.TIPPY_CSS || '';
 export class WeatherBar extends LitElement {
   @property({ type: Array })
   conditions: ConditionSpan[] = [];
+
+  @property({ type: Object })
+  day_time: DayTime = {dusk: null, dawn: null};
 
   @property({ type: Array })
   temperatures: SegmentTemperature[] = [];
@@ -69,9 +73,9 @@ export class WeatherBar extends LitElement {
 
   private tips: Instance[] = [];
 
-  private getIcon(condition:string) {
+  private getIcon(condition:string, isNight: boolean) {
     if (this.official_icons) {
-      return html`<span class="condition-icon-big">${getWeatherStateSVG(condition)}</span>`
+      return html`<span class="condition-icon-big">${getWeatherStateSVG(condition, isNight)}</span>`
     }
 
     let icon = ICONS[condition];
@@ -81,10 +85,14 @@ export class WeatherBar extends LitElement {
     return icon;
   }
 
-  private getConditionBar(condition: string, start:number, end:number, label: string, icon: string) {
+  private getConditionBar(condition: string, start:number, end:number, label: string, icon: string, isNight: boolean) {
     const barStyles: Readonly<StyleInfo> = { gridColumnStart: String(start), gridColumnEnd: String(end) };
+    const classes = {
+      [condition]: !this.official_icons,
+      night: isNight
+    };
     return html`
-      <div class="${this.official_icons ? nothing : condition}" style=${styleMap(barStyles)} data-tippy-content=${label}>
+      <div class=${classMap(classes)} style=${styleMap(barStyles)} data-tippy-content=${label}>
         ${this.icons ?
         html`${icon}` :
         html`<span class="condition-label">${label}</span>`}
@@ -98,20 +106,20 @@ export class WeatherBar extends LitElement {
       for (const cond of this.conditions) {
 
         const label = this.labels[cond[0]];
-        const icon = this.getIcon(cond[0]);
+        const icon = this.getIcon(cond[0], cond[2] || false);
 
         if (this.icon_fill) {
           for (let i = 0; i < cond[1]; i += this.segment_spacing) {
             const gridEnd = gridStart + (2 * this.segment_spacing);
             conditionBars.push(
-              this.getConditionBar(cond[0], gridStart, gridEnd, label, icon)
+              this.getConditionBar(cond[0], gridStart, gridEnd, label, icon, cond[2] || false)
             )
             gridStart = gridEnd;
           }
         } else {
           const gridEnd = gridStart + cond[1] * 2
           conditionBars.push(
-            this.getConditionBar(cond[0], gridStart, gridEnd, label, icon)
+            this.getConditionBar(cond[0], gridStart, gridEnd, label, icon, cond[2] || false)
           )
           gridStart = gridEnd;
         }
@@ -251,16 +259,17 @@ export class WeatherBar extends LitElement {
       --color-windy: var(--color-sunny);
       --color-windy-variant: var(--color-sunny);
       --color-exceptional: #ff9d00;
+      --color-night: #333;
     }
     .bar {
-      height: 30px;
+      height: 48px;
       width: 100%;
       display: grid;
       grid-auto-flow: column;
       grid-auto-columns: 1fr;
     }
     .bar > div {
-      height: 30px;
+      height: 48px;
       text-align: center;
       align-items: center;
       display: grid;
@@ -276,6 +285,9 @@ export class WeatherBar extends LitElement {
       max-width: max(0px, calc((100% - 40px) * 999));
       overflow: hidden;
     }
+    .night {
+      background-color: var(--color-night);
+    }
     .condition-icon-big {
       display: inline-block;
       max-width: max(0px, calc((100% - 20px) * 999));
@@ -289,11 +301,11 @@ export class WeatherBar extends LitElement {
     .condition-icon > ha-icon {
       filter: drop-shadow(1px 1px 3px var(--primary-background-color));
     }
-    .bar > div:first-child {
+    .bar > div:first-child.night {
       border-top-left-radius: 10px;
       border-bottom-left-radius: 10px;
     }
-    .bar > div:last-child {
+    .bar > div:last-child.night {
       border-top-right-radius: 10px;
       border-bottom-right-radius: 10px;
     }

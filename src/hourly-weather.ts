@@ -24,6 +24,7 @@ import type {
   ColorObject,
   ColorSettings,
   ConditionSpan,
+  DayTime,
   ForecastEvent,
   ForecastSegment,
   ForecastType,
@@ -294,6 +295,12 @@ export class HourlyWeatherCard extends LitElement {
     return { forecast, pending };
   }
 
+  private getDayNightTimes(): DayTime {
+    const dusk = new Date(this.hass.states["sensor.sun_next_dusk"].state);
+    const dawn = new Date(this.hass.states["sensor.sun_next_dawn"].state);
+    return {dusk, dawn};
+  }
+
   private hassSupportsForecastEvents(): boolean {
     return !!(this.hass?.services?.weather?.get_forecasts) || !!(this.hass?.services?.weather?.get_forecast);
   }
@@ -313,6 +320,7 @@ export class HourlyWeatherCard extends LitElement {
 
     const entityId: string = config.entity;
     const state = this.hass.states[entityId];
+    const dayTime = this.getDayNightTimes();
     const { forecast, pending } = this.getForecast();
     const windSpeedUnit = state.attributes.wind_speed_unit ?? '';
     const precipitationUnit = state.attributes.precipitation_unit ?? '';
@@ -374,7 +382,7 @@ export class HourlyWeatherCard extends LitElement {
         </ha-card>`;
     }
 
-    const conditionList = this.getConditionListFromForecast(forecast, numSegments, offset);
+    const conditionList = this.getConditionListFromForecast(forecast, numSegments, offset, dayTime);
     const temperatures = this.getTemperatures(forecast, numSegments, offset);
     const wind = this.getWind(forecast, numSegments, offset, windSpeedUnit);
     const precipitation = this.getPrecipitation(forecast, numSegments, offset, precipitationUnit);
@@ -421,18 +429,24 @@ export class HourlyWeatherCard extends LitElement {
     `;
   }
 
-  private getConditionListFromForecast(forecast: ForecastSegment[], numSegments: number, offset: number): ConditionSpan[] {
+  private getConditionListFromForecast(forecast: ForecastSegment[], numSegments: number, offset: number, dayTime: DayTime): ConditionSpan[] {
     let lastCond: string = forecast[offset].condition;
+    const lastDate = new Date(forecast[offset].datetime);
+    let lastIsNight:boolean = dayTime.dawn && dayTime.dusk && (lastDate < dayTime.dawn || lastDate >= dayTime.dusk) || false;
+
     let j = 0;
-    const res: ConditionSpan[] = [[lastCond, 1]];
+    const res: ConditionSpan[] = [[lastCond, 1, lastIsNight]];
     for (let i = offset + 1; i < numSegments + offset; i++) {
       const cond: string = forecast[i].condition;
-      if (cond === lastCond) {
+      const date: Date = new Date(forecast[i].datetime)
+      const isNight:boolean = dayTime.dawn && dayTime.dusk && (date < dayTime.dawn || date >= dayTime.dusk) || false;
+      if (cond === lastCond && isNight === lastIsNight) {
         res[j][1]++;
       } else {
-        res.push([cond, 1]);
+        res.push([cond, 1, isNight]);
         j++;
         lastCond = cond;
+        lastIsNight = isNight;
       }
     }
     return res;

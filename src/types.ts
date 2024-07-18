@@ -79,8 +79,14 @@ export interface ForecastSegment {
 
 export type ConditionSpan = [
   condition: string,
-  span: number
+  span: number,
+  isNight: boolean,
 ]
+
+export type DayTime = {
+  dusk: Date | null,
+  dawn: Date | null
+}
 
 export interface SegmentTemperature {
   hour: string,
