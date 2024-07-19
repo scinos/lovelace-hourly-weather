@@ -27,7 +27,7 @@
     "@material/mwc-switch": "^0.27.0",
     "@material/mwc-textfield": "^0.27.0",
     "custom-card-helpers": "^1.7.2",
-    "home-assistant-js-websocket": "^9.3.0",
+    "home-assistant-js-websocket": "^9.4.0",
     "is-valid-css-color": "^2.0.3",
     "lit": "^3.1.4",
     "tippy.js": "^6.3.7"
@@ -41,9 +41,9 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^5.0.7",
-    "@typescript-eslint/eslint-plugin": "^7.13.0",
-    "@typescript-eslint/parser": "^7.13.0",
-    "cypress": "^13.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "cypress": "^13.13.1",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^9.1.0",
@@ -57,7 +57,7 @@
     "rollup-plugin-typescript2": "^0.36.0",
     "rollup-plugin-visualizer": "^5.12.0",
     "start-server-and-test": "^2.0.4",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.3"
   },
   "resolutions": {
     "lit": "^2.1.2",
